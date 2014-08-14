@@ -1,10 +1,10 @@
 import sys
-import parsers
+import csvparser
 
 if len (sys.argv) != 2:
     print ("Invalid command line args")
 else:
-    de = parsers.DataExtractor(sys.argv[1])
+    de = csvparser.DataExtractor(sys.argv[1])
     '''
     totalDeposits = de.sumActivityTypeValues(sys.argv[1], "ActivityType", "Deposits", "NetAmount")
 

@@ -7,6 +7,7 @@ class DataExtractor:
     # List of lines
     __fileData = []
 
+    ''' This is the constructor for DataExtractor '''
     def __init__(self, filePath):
         self.filePath = filePath
         self.__populateFileData()
@@ -71,8 +72,6 @@ class DataExtractor:
     ' Dividends are not taken into account here
     '''
     def calculateTradesPerformance(self, nvp, symbolColumnName, valueColumnName):
-        trade = []
-        result = []
         usedSymbols = []
         symbolColumnIndex = self.getColumnIndexByName(symbolColumnName)
         buyNVP = nvp.copy()
