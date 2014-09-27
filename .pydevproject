@@ -7,6 +7,6 @@
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">python</pydev_property>
 
 <pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
-<path>C:\git\wizard\tradecalc</path>
+<path>C:\git\wizard\market</path>
 </pydev_pathproperty>
 </pydev_project>
