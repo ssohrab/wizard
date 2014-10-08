@@ -3,7 +3,7 @@ Created on Sep 3, 2014
 
 @author: ssohrab
 '''
-
+import re
 import urllib.request
 
 
@@ -13,9 +13,8 @@ import urllib.request
 '
 ' return: string containing the result
 '''
-def fetchPlainTextContentFromURL(url):
+def fetchPlainTextContentFromURL(url, encoding):
     response = urllib.request.urlopen(url)
-    
-    result = response.read().decode("iso-8859-1")
+    result = response.read().decode(encoding)
     
     return result
