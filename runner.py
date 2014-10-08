@@ -1,7 +1,7 @@
 import re
 import sys
 import market.urlutil as util
-import market.csvparser as parser
+import market.parser as parser
 import market.equityutil as equtil
 
 #market.urlutil.fetchPlainTextContentFromURI("http://download.finance.yahoo.com/d/quotes.csv?s=GOOG&f=nsl1op&e=.csv")

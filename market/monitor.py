@@ -7,7 +7,7 @@ Created on Sep 3, 2014
 import time
 import threading
 import market.urlutil
-import market.csvparser
+import market.parser
 
 class Monitor (threading.Thread):
     
@@ -24,7 +24,6 @@ class Monitor (threading.Thread):
         while(not self.__terminateMonitor):
             # Do a lot of shit while we can
             csvData = market.urlutil.fetchPlainTextContentFromURL(self.__url)
-            market.csvparser.parseStockData(csvData)
             
             #Chill for a bit
             time.sleep(self.__pollingIntervals)
