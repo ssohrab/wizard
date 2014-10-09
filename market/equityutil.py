@@ -26,7 +26,17 @@ class DataProvider:
     def getDefaultInfoArray(self):
         return self.__infoToFetch
 
+    def extractHistoricalDataForSymbols(self):
+        pass
 
 class YahooDataProvider(DataProvider):
-    def __init__(self):
+    def __init__(self, symbols):
         pass
+
+class Task:
+    __parameters = ""
+    __methodNameToCall = ""
+
+    def __init__(self, methodName, parameters):
+        
+        
