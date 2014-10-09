@@ -6,12 +6,14 @@ REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS = '>[A-Z]+:[A-Z]+<'
 class DataProvider:
     test = "test"
     __providerName = ""
-    __providerBaseURL = ""
+    __providerFullURL = ""
     __infoToFetch = ["symbol", "day_open", "day_close"]
     
     '''
     ' This method uses __infoToFetch to build the needed query parameter for the specific data provider
     ' and return a dictionary containing the same keys as in __infoToFetch with their corresponding values.
+    '
+    ' return: i.e. {"symbol":"BB.TO", "day_open":5.0, ...}
     '''
     def extractInfo(self):
         pass
@@ -30,9 +32,14 @@ class DataProvider:
         pass
 
 class YahooDataProvider(DataProvider):
-    def __init__(self, symbols):
-        pass
+    # http://download.finance.yahoo.com/d/quotes.csv?s=GOOG&f=nsl1op&e=.csv
+    __baseURL = ""
 
+    def __init__(self, baseURL):
+        self.__baseURL = baseURL
+
+    def __constructFullURL(self):
+        
 class Task:
     __parameters = ""
     __methodNameToCall = ""

@@ -1,6 +1,0 @@
-# This file would contain a list of tasks that market wizard would be able
-# to perform. The name of tasks should correspond to a function name in runner.py 
-
-task > extract_historical_data:symbols:aaa,bbb,ccc; provider_name:Yahoo; provider_url<optional>; info_to_extract:symbol, day_open, day_close
-
-task > recommend_equity_from_webpage:http://allpennystocks.com; regex1: ; regex2: ; top:5
