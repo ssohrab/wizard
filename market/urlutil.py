@@ -3,7 +3,7 @@ Created on Sep 3, 2014
 
 @author: ssohrab
 '''
-import re
+
 import urllib.request
 
 

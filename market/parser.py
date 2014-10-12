@@ -7,7 +7,7 @@ import sys
 ' return: string containing the whole text file
 '''
 from market import urlutil, equityutil
-from idlelib.IOBinding import encoding
+
 def readTextFile(filePath):
 
     result = ""
@@ -29,7 +29,7 @@ def readTextFile(filePath):
 ' regex2: how to find individual symbols within the group
 ' suffix: this is needed for some cases such as Yahoo's symbol lookup. i.e. ".V", ".TO"
 '
-' return: an array which contains all the symbols found.
+' return: an array which contains all the symbols found. i.e. ["BB", "AAPL", ...]
 '''
 def extractSymbolsFromWebsite(url, regex1, regex2, encoding, suffix):
     tsxvURLData = urlutil.fetchPlainTextContentFromURL(url, encoding)

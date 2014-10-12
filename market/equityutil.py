@@ -2,9 +2,10 @@
 REGEX_FOR_EACH_SYMBOL = "[A-Za-z]+"
 REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS = '>[A-Z]+:[A-Z]+<'
 
-
+'''
+' This class must serve as an abstract class
+'''
 class DataProvider:
-    test = "test"
     __providerName = ""
     __providerFullURL = ""
     __infoToFetch = ["symbol", "day_open", "day_close"]
@@ -39,11 +40,4 @@ class YahooDataProvider(DataProvider):
         self.__baseURL = baseURL
 
     def __constructFullURL(self):
-        
-class Task:
-    __parameters = ""
-    __methodNameToCall = ""
-
-    def __init__(self, methodName, parameters):
-        
-        
+        pass
