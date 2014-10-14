@@ -13,7 +13,7 @@ import urllib.request
 '
 ' return: string containing the result
 '''
-def fetchPlainTextContentFromURL(url, encoding):
+def fetchPlainTextContentFromURL(url, encoding="utf-8"):
     response = urllib.request.urlopen(url)
     result = response.read().decode(encoding)
     
