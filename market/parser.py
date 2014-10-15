@@ -52,10 +52,29 @@ def extractSymbolsFromWebsite(url, regex1, regex2, encoding, suffix):
     return tokens
 
 '''
-' This method looks at the first row of given CSV data and returns a dictionary containing name of the columns and their indices. i.e. {"Date":0, "Open":1,...}
+' This function reads the given CSV data into a dictionary. i.e. {"Date":[ ], "Open":[ ], ...}
 '''
-def extractColumnNamesAndIndicesFromCSVData():
-    pass
+def dictizeCSVData(data):
+    result = {}
+    
+    rows = data.split("\n")
+    
+    # Read the first row to get the column names
+    columnNamesRow = rows[0]
+    
+    columnNames = columnNamesRow.split(",")
+    
+    for name in columnNames:
+        result[name] = []
+
+    for row in rows[1:]:
+        values = row.split(",")
+        
+        for i in range(0, len(values)):
+            result[columnNames[i]].append(values[i])
+    
+    
+    return result
 
 class YahooDataProvider:
     # http://download.finance.yahoo.com/d/quotes.csv?s=GOOG&f=nsl1op&e=.csv
@@ -161,3 +180,4 @@ class YahooDataProvider:
         providerData = util.fetchPlainTextContentFromURL(self.__providerFullURL)
         print(self.__providerFullURL)
         print(providerData)
+        print(dictizeCSVData(providerData)['Close'])
