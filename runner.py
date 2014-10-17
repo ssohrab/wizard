@@ -2,7 +2,9 @@ import re
 import sys
 import runner
 import threading
+import market.urlutil as url
 import market.parser as parser
+
 
 COMMAND_TYPE_INDEX = 0
 FUNCTION_INFO_INDEX = 1
@@ -42,9 +44,14 @@ class MethodThread(threading.Thread):
 #                                  "iso-8859-1", ".V")
 # print(len(symbols))
 
+# parser.extractSymbolsAndVolumesFromWebsite("http://www.allpennystocks.com/aps_ca/hot_tsxv_stocks.asp",
+#                                            ">[\d,]+</[tdTD]{2}>", "[\d,]+", parser.REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS, parser.REGEX_FOR_EACH_SYMBOL, "iso-8859-1")
+
+
 
 def getIntraDayDataForSymbol(args):
     if (args[0] == "Yahoo"):
+        print("calling getIntraDayData")
         dp = parser.YahooDataProvider(0, args[1], args[2])
         mt = MethodThread(dp, "getIntraDayData")
         mt.start()

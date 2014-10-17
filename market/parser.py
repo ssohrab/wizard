@@ -7,6 +7,12 @@ from collections import OrderedDict
 
 REGEX_FOR_EACH_SYMBOL = "[A-Za-z]+"
 REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS = '>[A-Z]+:[A-Z]+<'
+REGEX1_FOR_BETA_FROM_TMX = ">Beta:</td>\s*<td.*>\d\.\d*</td>"
+REGEX2_FOR_BETA_FROM_TMX = "\d+\.*\d+"
+
+BASE_URL_YAHOO_EOD = "http://ichart.yahoo.com/table.csv"
+BASE_URL_TMX = "http://web.tmxmoney.com/quote.php?qm_symbol="
+
 
 '''
 ' Convenience method for reading the entire CSV file at once
@@ -37,9 +43,13 @@ def readTextFile(filePath):
 ' return: an array which contains all the symbols found. i.e. ["BB", "AAPL", ...]
 '''
 def extractSymbolsFromWebsite(url, regex1, regex2, encoding, suffix):
-    tsxvURLData = util.fetchPlainTextContentFromURL(url, encoding)
+    theURLData = util.fetchPlainTextContentFromURL(url, encoding)
+    
+    return extractSymbolFromHTMLString(theURLData, regex1, regex2, suffix)
 
-    tokens = re.findall(regex1, tsxvURLData)
+
+def extractSymbolFromHTMLString(htmlString, regex1, regex2, suffix):
+    tokens = re.findall(regex1, htmlString)
     
     compiledReg = re.compile(regex2)
     
@@ -52,7 +62,37 @@ def extractSymbolsFromWebsite(url, regex1, regex2, encoding, suffix):
     return tokens
 
 '''
-' This function reads the given CSV data into a dictionary. i.e. {"Date":[ ], "Open":[ ], ...}
+' @return: A dictionary i.e. {"BB.TO":<volume>,....}
+'''
+def extractSymbolsAndVolumesFromWebsite(url, regEx1Vol, regEx2Vol, regEx1Sym, regEx2Sym, encoding="utf-8"):
+    result = OrderedDict([])
+    theURLData = util.fetchPlainTextContentFromURL(url, encoding)
+
+    symbolsArray = extractSymbolFromHTMLString(theURLData, regEx1Sym, regEx2Sym, ".V")
+    
+    allTDVolumes = re.findall(regEx1Vol, theURLData)
+    
+    compiledRegEx = re.compile(regEx2Vol)
+    
+    i = 0
+    for sym in symbolsArray:
+        valueWithComma = compiledRegEx.search(allTDVolumes[i]).group()
+        valueAsInt = int(re.sub("[,]", "", valueWithComma))
+        result[sym] = valueAsInt
+        i += 1
+    
+    return result
+
+def extractBetaForSymbol(url, regEx1, regEx2, encoding="ISO-8859-1"):
+    #http://web.tmxmoney.com/quote.php?qm_symbol=SIO:TSV
+    data = url.fetchPlainTextContentFromURL(url, encoding)
+
+    res = re.search(regEx1, data).group()
+    value = re.search(regEx2, res).group()
+
+    return value
+
+'''
 '''
 def dictizeCSVData(data):
     result = {}
@@ -87,11 +127,14 @@ class YahooDataProvider:
     __SYMBOL_INDEX = 0
     __BASE_URL_INDEX = 1
     __INFO_TO_FETCH_INDEX = 2
-    __YAHOO_QUOTE_PROPERTY_MAP = OrderedDict([("ask", "a"), ("ask_size", "a5"), ("avg_daily_volume", "a2"), ("bid", "b"),
-                                              ("bid_size", "b6"), ("change", "c1"), ("percent_change","p2"), ("day_hight","h"),
+    __YAHOO_QUOTE_PROPERTY_MAP = OrderedDict([("ask", "a"), ("avg_daily_volume", "a2"), ("bid", "b"),
+                                              ("change", "c1"), ("percent_change","p2"), ("day_high","h"),
                                               ("day_low","g"), ("last_trade","l1"), ("last_trade_size","k3"), ("last_trade_date","d1"),
                                               ("last_trade_time","t1"),("name","n"), ("open","o"), ("year_high","k"), ("year_low","j")])
     
+    '''
+    ' dataType: 0 for intraday, 1 for EOD data
+    '''
     def __init__(self, dataType, *args):
         
         if (len(args) < 2):
@@ -136,7 +179,7 @@ class YahooDataProvider:
         return result
     
     def __constructFullURLForEODData(self):
-        #http://ichart.yahoo.com/table.csv?s=
+        #http://ichart.yahoo.com/table.csv
         a = self.__fromDate[0] # Month
         b = self.__fromDate[1] # Day
         c = self.__fromDate[2] # Year
@@ -172,6 +215,8 @@ class YahooDataProvider:
         for k in keys:
             retResult[k] = providerDataTokens[i]
             i += 1
+        
+        print(retResult)
         
         return retResult
     
