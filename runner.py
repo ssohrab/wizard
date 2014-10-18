@@ -4,6 +4,7 @@ import runner
 import threading
 import market.urlutil as url
 import market.parser as parser
+import market.equityutil as eq
 
 
 COMMAND_TYPE_INDEX = 0
@@ -32,26 +33,25 @@ class MethodThread(threading.Thread):
 
     def run(self):
         if (self.__methodArgs == None):
-            print(self.__object)
             getattr(self.__object, self.__methodName)()
         else:
             getattr(self.__object, self.__methodName)(self.__methodArgs)
 
 
-# symbols = parser.extractSymbolsFromWebsite("http://www.allpennystocks.com/aps_ca/hot_tsxv_stocks.asp",
-#                                  equtil.REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS,
-#                                  equtil.REGEX_FOR_EACH_SYMBOL,
-#                                  "iso-8859-1", ".V")
-# print(len(symbols))
+symbols = parser.extractSymbolsFromWebsite("http://www.allpennystocks.com/aps_ca/hot_tsxv_stocks.asp",
+                                 parser.REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS,
+                                 parser.REGEX_FOR_EACH_SYMBOL,
+                                 "iso-8859-1", ".V")
+
 
 # parser.extractSymbolsAndVolumesFromWebsite("http://www.allpennystocks.com/aps_ca/hot_tsxv_stocks.asp",
 #                                            ">[\d,]+</[tdTD]{2}>", "[\d,]+", parser.REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS, parser.REGEX_FOR_EACH_SYMBOL, "iso-8859-1")
 
 
+eq.recommendFromSymbols(symbols, ['1','1','2014'], ['8','25','2014'], "d")
 
 def getIntraDayDataForSymbol(args):
     if (args[0] == "Yahoo"):
-        print("calling getIntraDayData")
         dp = parser.YahooDataProvider(0, args[1], args[2])
         mt = MethodThread(dp, "getIntraDayData")
         mt.start()
@@ -77,7 +77,6 @@ while True:
         sys.exit()
     else:
         userInputTokens = userInput.split(">")
-        print(userInputTokens)
         if (len(userInputTokens) == 2):
             commandType = userInputTokens[COMMAND_TYPE_INDEX]
 

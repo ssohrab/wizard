@@ -1,7 +1,5 @@
 import re
 import sys
-import market.parser
-import market.equityutil
 import market.urlutil as util
 from collections import OrderedDict
 
@@ -9,15 +7,18 @@ REGEX_FOR_EACH_SYMBOL = "[A-Za-z]+"
 REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS = '>[A-Z]+:[A-Z]+<'
 REGEX1_FOR_BETA_FROM_TMX = ">Beta:</td>\s*<td.*>\d\.\d*</td>"
 REGEX2_FOR_BETA_FROM_TMX = "\d+\.*\d+"
+REGEX1_FOR_VOLUME = ">[\d,]+</[tdTD]{2}>"
+REGEX2_FOR_VOLUME = "[\d,]+"
 
 BASE_URL_YAHOO_EOD = "http://ichart.yahoo.com/table.csv"
+BASE_URL_YAHOO_INTRADAY = "http://download.finance.yahoo.com/d/quotes.csv"
 BASE_URL_TMX = "http://web.tmxmoney.com/quote.php?qm_symbol="
 
 
 '''
-' Convenience method for reading the entire CSV file at once
-'
-' return: string containing the whole text file
+ @summary: Convenience method for reading the entire CSV file at once
+
+ @return: string containing the whole text file
 '''
 def readTextFile(filePath):
 
@@ -32,17 +33,18 @@ def readTextFile(filePath):
 
     return result
 
-'''
-' This method can be used to get all equity symbols from tabulated data, using the given regex.
-'
-' url: website from which to get the symbols
-' regex1: how to find all the symbol groups in the HTML document
-' regex2: how to find individual symbols within the group
-' suffix: this is needed for some cases such as Yahoo's symbol lookup. i.e. ".V", ".TO"
-'
-' return: an array which contains all the symbols found. i.e. ["BB", "AAPL", ...]
-'''
+
 def extractSymbolsFromWebsite(url, regex1, regex2, encoding, suffix):
+    '''
+     @summary: This method can be used to get all equity symbols from tabulated data, using the given regex.
+     
+     @param url: website from which to get the symbols
+     @param regex1: how to find all the symbol groups in the HTML document
+     @param regex2: how to find individual symbols within the group
+     @param suffix: this is needed for some cases such as Yahoo's symbol lookup. i.e. ".V", ".TO"
+     
+     @return: An array which contains all the symbols found. i.e. ["BB", "AAPL", ...]
+    '''
     theURLData = util.fetchPlainTextContentFromURL(url, encoding)
     
     return extractSymbolFromHTMLString(theURLData, regex1, regex2, suffix)
@@ -62,7 +64,7 @@ def extractSymbolFromHTMLString(htmlString, regex1, regex2, suffix):
     return tokens
 
 '''
-' @return: A dictionary i.e. {"BB.TO":<volume>,....}
+ @return: A dictionary i.e. {"BB.TO":<volume>,....}
 '''
 def extractSymbolsAndVolumesFromWebsite(url, regEx1Vol, regEx2Vol, regEx1Sym, regEx2Sym, encoding="utf-8"):
     result = OrderedDict([])
@@ -84,8 +86,7 @@ def extractSymbolsAndVolumesFromWebsite(url, regEx1Vol, regEx2Vol, regEx1Sym, re
     return result
 
 def extractBetaForSymbol(url, regEx1, regEx2, encoding="ISO-8859-1"):
-    #http://web.tmxmoney.com/quote.php?qm_symbol=SIO:TSV
-    data = url.fetchPlainTextContentFromURL(url, encoding)
+    data = util.fetchPlainTextContentFromURL(url, encoding)
 
     res = re.search(regEx1, data).group()
     value = re.search(regEx2, res).group()
@@ -113,7 +114,6 @@ def dictizeCSVData(data):
         for i in range(0, len(values)):
             result[columnNames[i]].append(values[i])
     
-    
     return result
 
 class YahooDataProvider:
@@ -122,15 +122,16 @@ class YahooDataProvider:
     __fromDate = [] # [month, day, year]
     __toDate = []
     __interval = ""
+    __infoToFetch = None # Must be a dictionary
     __getAllData = True
     __providerFullURL = ""
     __SYMBOL_INDEX = 0
     __BASE_URL_INDEX = 1
     __INFO_TO_FETCH_INDEX = 2
-    __YAHOO_QUOTE_PROPERTY_MAP = OrderedDict([("ask", "a"), ("avg_daily_volume", "a2"), ("bid", "b"),
-                                              ("change", "c1"), ("percent_change","p2"), ("day_high","h"),
-                                              ("day_low","g"), ("last_trade","l1"), ("last_trade_size","k3"), ("last_trade_date","d1"),
-                                              ("last_trade_time","t1"),("name","n"), ("open","o"), ("year_high","k"), ("year_low","j")])
+    YAHOO_QUOTE_PROPERTY_MAP = OrderedDict([("ask", "a"), ("avg_daily_volume", "a2"), ("bid", "b"),
+                                            ("change", "c1"), ("percent_change","p2"), ("day_high","h"),
+                                            ("day_low","g"), ("last_trade","l1"), ("last_trade_size","k3"), ("last_trade_date","d1"),
+                                            ("last_trade_time","t1"),("name","n"), ("open","o"), ("year_high","k"), ("year_low","j")])
     
     '''
     ' dataType: 0 for intraday, 1 for EOD data
@@ -149,7 +150,7 @@ class YahooDataProvider:
         elif (len(args) == 3 and dataType == 0):
             self.__infoToFetch = args[self.__INFO_TO_FETCH_INDEX]
             self.__getAllData = False
-            self.__parent.__providerFullURL = self.__constructFullURLForIntradayData()
+            self.__providerFullURL = self.__constructFullURLForIntradayData()
         elif (len(args) == 5 and dataType == 1):
             self.__fromDate = args[2]
             self.__toDate = args[3]
@@ -163,10 +164,10 @@ class YahooDataProvider:
 
         if (self.__getAllData):
             # Use the map to get all the needed info
-            keys = self.__YAHOO_QUOTE_PROPERTY_MAP.keys()
+            keys = self.YAHOO_QUOTE_PROPERTY_MAP.keys()
             
             for k in keys:
-                f += self.__YAHOO_QUOTE_PROPERTY_MAP[k]
+                f += self.YAHOO_QUOTE_PROPERTY_MAP[k]
         else:
             # Use __infoToFetch
             keys = self.__infoToFetch.keys()
@@ -195,9 +196,9 @@ class YahooDataProvider:
         return result
 
     '''
-    ' This method returns the all information specified in __YAHOO_QUOTE_PROPERTY_MAP or what user provides.
-    ' 
-    ' @return: A dictionary which would contain the same keys as asked by the user and values that were obtained from Yahoo 
+     @summary: This method returns the all information specified in __YAHOO_QUOTE_PROPERTY_MAP or what user provides.
+     
+     @return: A dictionary which would contain the same keys as asked by the user and values that were obtained from Yahoo 
     '''
     def getIntraDayData(self):
         retResult = OrderedDict([])
@@ -205,7 +206,12 @@ class YahooDataProvider:
         
         # providerData is in CSV format. Number of elements in providerData should match number of items in __YAHOO_QUOTE_PROPERTY_MAP
         providerDataTokens = providerData.split(",")
-        keys = self.__YAHOO_QUOTE_PROPERTY_MAP
+        
+        if (self.__getAllData):
+            keys = self.__YAHOO_QUOTE_PROPERTY_MAP
+        else:
+            keys = self.__infoToFetch
+        
         
         if (len(keys) != len(providerDataTokens)):
             print("Something went wrong")
@@ -213,16 +219,13 @@ class YahooDataProvider:
 
         i = 0
         for k in keys:
-            retResult[k] = providerDataTokens[i]
+            retResult[k] = providerDataTokens[i].strip()
             i += 1
-        
-        print(retResult)
         
         return retResult
     
     def getEODData(self):
         #http://ichart.yahoo.com/table.csv?s=BAS.DE&a=0&b=1&c=2000 &d=0&e=31&f=2010&g=w&ignore=.csv
         providerData = util.fetchPlainTextContentFromURL(self.__providerFullURL)
-        print(self.__providerFullURL)
-        print(providerData)
-        print(dictizeCSVData(providerData)['Close'])
+
+        return dictizeCSVData(providerData)
