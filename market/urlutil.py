@@ -14,7 +14,11 @@ import urllib.request
 ' return: string containing the result
 '''
 def fetchPlainTextContentFromURL(url, encoding="utf-8"):
-    response = urllib.request.urlopen(url)
+    try:
+        response = urllib.request.urlopen(url)
+    except:
+        return ''
+    
     result = response.read().decode(encoding)
     
     return result

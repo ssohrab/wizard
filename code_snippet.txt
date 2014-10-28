@@ -133,3 +133,17 @@ def convertNVP2IVP(theDictionary):
         result.update({index:theDictionary[columnName]})
 
     return result
+
+    
+    
+# symbols = parser.extractSymbolsFromWebsite("http://www.allpennystocks.com/aps_ca/hot_tsxv_stocks.asp",
+#                                  parser.REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS,
+#                                  parser.REGEX_FOR_EACH_SYMBOL,
+#                                  "iso-8859-1", ".V")
+
+
+# parser.extractSymbolsAndVolumesFromWebsite("http://www.allpennystocks.com/aps_ca/hot_tsxv_stocks.asp",
+#                                            ">[\d,]+</[tdTD]{2}>", "[\d,]+", parser.REGEX_FOR_ALLPENNYSTOCKS_SYMBOLS, parser.REGEX_FOR_EACH_SYMBOL, "iso-8859-1")
+
+
+#eq.getStatsForSymbols(symbols, ['1','1','2014'], ['8','25','2014'], "d")

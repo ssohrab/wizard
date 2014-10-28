@@ -13,7 +13,16 @@ REGEX2_FOR_VOLUME = "[\d,]+"
 BASE_URL_YAHOO_EOD = "http://ichart.yahoo.com/table.csv"
 BASE_URL_YAHOO_INTRADAY = "http://download.finance.yahoo.com/d/quotes.csv"
 BASE_URL_TMX = "http://web.tmxmoney.com/quote.php?qm_symbol="
+BASE_URL_ALLPENNYSTOCKS_TSV = "http://www.allpennystocks.com/aps_ca/hot_tsxv_stocks.asp"
 
+yahooToTMXMap = {".V":":TSV", ".TO":":TSX"}
+
+def convertFromYahooToTMXSymbol(symbol):
+    tokens = symbol.split('.')
+    tmxSuffix = yahooToTMXMap['.' + tokens[1]]
+    resultSymbol = tokens[0] + tmxSuffix
+    
+    return resultSymbol
 
 '''
  @summary: Convenience method for reading the entire CSV file at once
@@ -34,7 +43,7 @@ def readTextFile(filePath):
     return result
 
 
-def extractSymbolsFromWebsite(url, regex1, regex2, encoding, suffix):
+def extractSymbolsFromWebsite(url, regex1, regex2, suffix, encoding='iso-8859-1'):
     '''
      @summary: This method can be used to get all equity symbols from tabulated data, using the given regex.
      
@@ -47,7 +56,11 @@ def extractSymbolsFromWebsite(url, regex1, regex2, encoding, suffix):
     '''
     theURLData = util.fetchPlainTextContentFromURL(url, encoding)
     
-    return extractSymbolFromHTMLString(theURLData, regex1, regex2, suffix)
+    retResult = extractSymbolFromHTMLString(theURLData, regex1, regex2, suffix)
+    
+    print(retResult)
+    
+    return retResult
 
 
 def extractSymbolFromHTMLString(htmlString, regex1, regex2, suffix):
@@ -85,10 +98,16 @@ def extractSymbolsAndVolumesFromWebsite(url, regEx1Vol, regEx2Vol, regEx1Sym, re
     
     return result
 
-def extractBetaForSymbol(url, regEx1, regEx2, encoding="ISO-8859-1"):
-    data = util.fetchPlainTextContentFromURL(url, encoding)
+def extractBetaForSymbol(url, symbol, regEx1, regEx2, encoding="ISO-8859-1"):
+    print("Beta URL: " + url + symbol)
+    data = util.fetchPlainTextContentFromURL(url + symbol, encoding)
 
-    res = re.search(regEx1, data).group()
+    res = re.search(regEx1, data)
+    
+    if (res == None):
+        return 'NaN'
+    
+    res = res.group()
     value = re.search(regEx2, res).group()
 
     return value
@@ -181,11 +200,11 @@ class YahooDataProvider:
     
     def __constructFullURLForEODData(self):
         #http://ichart.yahoo.com/table.csv
-        a = self.__fromDate[0] # Month
+        a = str(int(self.__fromDate[0]) - 1) # Month
         b = self.__fromDate[1] # Day
         c = self.__fromDate[2] # Year
         
-        d = self.__toDate[0] # Month
+        d = str(int(self.__toDate[0]) - 1) # Month
         e = self.__toDate[1] # Day
         f = self.__toDate[2] # Year
         
@@ -226,6 +245,10 @@ class YahooDataProvider:
     
     def getEODData(self):
         #http://ichart.yahoo.com/table.csv?s=BAS.DE&a=0&b=1&c=2000 &d=0&e=31&f=2010&g=w&ignore=.csv
+        print('Request URL = ' + self.__providerFullURL)
         providerData = util.fetchPlainTextContentFromURL(self.__providerFullURL)
 
+        if (providerData == ''):
+            return {}
+        
         return dictizeCSVData(providerData)
